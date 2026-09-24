@@ -1,0 +1,229 @@
+﻿{
+    "colleges":  [
+                     {
+                         "image":  "https://images.unsplash.com/photo-1562774053-701939374585?auto=format\u0026fit=crop\u0026w=800\u0026q=80",
+                         "id":  "col-1",
+                         "lng":  73.7616,
+                         "area":  "Akurdi / Nigdi",
+                         "city":  "Pune",
+                         "state":  "Maharashtra",
+                         "name":  "Pimpri Chinchwad College of Engineering (PCCOE)",
+                         "code":  "PCCOE",
+                         "lat":  18.6517
+                     },
+                     {
+                         "image":  "https://images.unsplash.com/photo-1541829070764-84a7d30dd3f3?auto=format\u0026fit=crop\u0026w=800\u0026q=80",
+                         "id":  "col-2",
+                         "lng":  73.8565,
+                         "area":  "Shivajinagar",
+                         "city":  "Pune",
+                         "state":  "Maharashtra",
+                         "name":  "College of Engineering Pune (COEP Technological University)",
+                         "code":  "COEP",
+                         "lat":  18.5293
+                     }
+                 ],
+    "reviews":  [
+
+                ],
+    "users":  [
+                  {
+                      "id":  "user-1",
+                      "name":  "Rohan Sharma",
+                      "password":  "password123",
+                      "username":  "rohan123",
+                      "email":  "rohan@student.com",
+                      "role":  "student"
+                  },
+                  {
+                      "id":  "user-2",
+                      "name":  "Rajesh Patil",
+                      "password":  "password123",
+                      "username":  "rajesh_owner",
+                      "email":  "rajesh@staynest.com",
+                      "role":  "owner"
+                  },
+                  {
+                      "id":  "admin-1",
+                      "name":  "PCCOE Administrator",
+                      "password":  "sujal.pccoe",
+                      "username":  "staynest.pccoe",
+                      "email":  "admin@pccoe.edu",
+                      "role":  "admin"
+                  }
+              ],
+    "pgs":  [
+                {
+                    "rentPerMonth":  7500,
+                    "nearbyColleges":  [
+                                           {
+                                               "distanceKm":  0.6,
+                                               "travelTimeMins":  7,
+                                               "collegeName":  "PCCOE",
+                                               "collegeId":  "col-1"
+                                           }
+                                       ],
+                    "foodDetails":  "3 Meals daily (Pure Veg). Unlimited Breakfast, Lunch, and Dinner with Sunday Special.",
+                    "availableBeds":  5,
+                    "foodAvailable":  true,
+                    "facilities":  [
+                                       "Wi-Fi",
+                                       "Hot water",
+                                       "24-hour water",
+                                       "Washing machine",
+                                       "CCTV",
+                                       "Security",
+                                       "Study table",
+                                       "Cupboard",
+                                       "Bed",
+                                       "Electricity backup",
+                                       "Housekeeping",
+                                       "Attached bathroom"
+                                   ],
+                    "address":  "Plot 42, Sector 26, Pradhikaran, Akurdi",
+                    "tagline":  "Premium Boys PG with modern study lounge \u0026 high-speed Wi-Fi",
+                    "ownerPhone":  "+91 98220 12345",
+                    "verifiedStatus":  "verified",
+                    "ownerId":  "user-2",
+                    "totalBeds":  24,
+                    "lng":  73.7645,
+                    "pincode":  "411044",
+                    "ownerName":  "Rajesh Patil",
+                    "totalReviews":  48,
+                    "googleMapUrl":  "https://maps.google.com/?q=18.6502,73.7645",
+                    "id":  "pg-101",
+                    "city":  "Pune",
+                    "photos":  [
+                                   "https://images.unsplash.com/photo-1555854877-bab0e564b8d5?auto=format\u0026fit=crop\u0026w=1000\u0026q=80",
+                                   "https://images.unsplash.com/photo-1595526114035-0d45ed16cfbf?auto=format\u0026fit=crop\u0026w=1000\u0026q=80"
+                               ],
+                    "area":  "Akurdi",
+                    "securityDeposit":  10000,
+                    "state":  "Maharashtra",
+                    "ownerEmail":  "rajesh@staynest.com",
+                    "lat":  18.6502,
+                    "rating":  4.7,
+                    "sharingTypes":  [
+                                         "double",
+                                         "triple"
+                                     ],
+                    "extraChargesDescription":  "Electricity billed at â‚¹9/unit on actual sub-meter reading.",
+                    "name":  "Sunrise Luxury Student Living",
+                    "genderType":  "boys"
+                },
+                {
+                    "rentPerMonth":  6800,
+                    "nearbyColleges":  [
+                                           {
+                                               "distanceKm":  0.9,
+                                               "travelTimeMins":  10,
+                                               "collegeName":  "PCCOE",
+                                               "collegeId":  "col-1"
+                                           }
+                                       ],
+                    "foodDetails":  "Homely Maharashtrian Veg food prepared under hygienic supervision.",
+                    "availableBeds":  2,
+                    "foodAvailable":  true,
+                    "facilities":  [
+                                       "Wi-Fi",
+                                       "Hot water",
+                                       "24-hour water",
+                                       "Washing machine",
+                                       "CCTV",
+                                       "Security",
+                                       "Study table",
+                                       "Cupboard",
+                                       "Bed",
+                                       "Attached bathroom",
+                                       "Mess/Food",
+                                       "Housekeeping"
+                                   ],
+                    "address":  "Near Station Road, Sector 24, Pradhikaran",
+                    "tagline":  "Safe, secure \u0026 homely accommodation for female students",
+                    "ownerPhone":  "+91 94231 88900",
+                    "verifiedStatus":  "verified",
+                    "ownerId":  "user-2",
+                    "totalBeds":  18,
+                    "lng":  73.768,
+                    "pincode":  "411044",
+                    "ownerName":  "Sunita Deshmukh",
+                    "totalReviews":  62,
+                    "googleMapUrl":  "https://maps.google.com/?q=18.6489,73.7680",
+                    "id":  "pg-102",
+                    "city":  "Pune",
+                    "photos":  [
+                                   "https://images.unsplash.com/photo-1598928506311-c55ded91a20c?auto=format\u0026fit=crop\u0026w=1000\u0026q=80",
+                                   "https://images.unsplash.com/photo-1540518614846-7ede433c5172?auto=format\u0026fit=crop\u0026w=1000\u0026q=80"
+                               ],
+                    "area":  "Akurdi",
+                    "securityDeposit":  8000,
+                    "state":  "Maharashtra",
+                    "ownerEmail":  "saikrupa.pg@staynest-demo.com",
+                    "lat":  18.6489,
+                    "rating":  4.8,
+                    "sharingTypes":  [
+                                         "single",
+                                         "double",
+                                         "triple"
+                                     ],
+                    "extraChargesDescription":  "Includes Wi-Fi, Water \u0026 Maintenance. No hidden costs.",
+                    "name":  "Sai Krupa Girls PG \u0026 Hostel",
+                    "genderType":  "girls"
+                },
+                {
+                    "id":  "pg-user-1790180336058",
+                    "ownerId":  "user-1790180245136",
+                    "name":  "skdfkl",
+                    "tagline":  "smdfk",
+                    "genderType":  "boys",
+                    "rentPerMonth":  7000,
+                    "securityDeposit":  10000,
+                    "extraChargesDescription":  "Electricity billed as per sub-meter.",
+                    "totalBeds":  10,
+                    "availableBeds":  3,
+                    "availabilityStatus":  "almost_full",
+                    "sharingTypes":  [
+                                         "double",
+                                         "triple"
+                                     ],
+                    "address":  "sdfkl",
+                    "area":  "lkskjdflk",
+                    "city":  "Pune",
+                    "state":  "Maharashtra",
+                    "pincode":  "411044",
+                    "lat":  18.651018603573768,
+                    "lng":  73.77192132579728,
+                    "googleMapUrl":  "dskhf",
+                    "nearbyColleges":  [
+                                           {
+                                               "collegeId":  "col-1",
+                                               "collegeName":  "Pimpri Chinchwad College of Engineering (PCCOE)",
+                                               "distanceKm":  0.8
+                                           }
+                                       ],
+                    "facilities":  [
+                                       "Wi-Fi",
+                                       "Hot water",
+                                       "Study table",
+                                       "Cupboard",
+                                       "Bed"
+                                   ],
+                    "photos":  [
+                                   "https://images.unsplash.com/photo-1555854877-bab0e564b8d5?auto=format\u0026fit=crop\u0026w=1000\u0026q=80",
+                                   "http://localhost:5000/uploads/pg-img-639257968875631863.jpg"
+                               ],
+                    "ownerName":  "StayNest Host",
+                    "ownerPhone":  "+91 98765 43210",
+                    "ownerEmail":  "tanmay.awad25@pccoepune.org",
+                    "rating":  4.5,
+                    "totalReviews":  1,
+                    "foodAvailable":  true,
+                    "foodDetails":  "3 Veg meals daily.",
+                    "rules":  [
+                                  "Gate closes at 10 PM"
+                              ],
+                    "isDemoData":  false,
+                    "verifiedStatus":  "verified"
+                }
+            ]
+}
