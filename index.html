@@ -1,0 +1,1776 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StayNest - Student PG Accommodation Platform</title>
+  <meta name="description" content="Find, compare, and inspect verified PG accommodation near any college or university campus across India. Multi-college student accommodation portal.">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#f0f7ff',
+              100: '#e0effe',
+              200: '#bae0fd',
+              500: '#0284c7',
+              600: '#0265d2',
+              700: '#034ea2',
+              800: '#074182',
+              900: '#0c376d',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Leaflet CSS & JS for Maps -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+
+  <!-- React 18 & Babel CDN -->
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    h1, h2, h3, h4, h5, h6 { font-family: 'Outfit', sans-serif; }
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: #f1f5f9; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-900 selection:bg-brand-500 selection:text-white">
+  <div id="root"></div>
+
+  <!-- React + JSX Script -->
+  <script type="text/babel">
+    const { useState, useEffect, useRef } = React;
+
+    // --- SEED DATA ---
+    const INITIAL_COLLEGES = [
+      {
+        id: 'col-1',
+        name: 'Pimpri Chinchwad College of Engineering (PCCOE)',
+        code: 'PCCOE',
+        city: 'Pune',
+        state: 'Maharashtra',
+        area: 'Akurdi / Nigdi',
+        image: 'https://images.unsplash.com/photo-1562774053-701939374585?auto=format&fit=crop&w=800&q=80',
+        lat: 18.6517,
+        lng: 73.7616
+      },
+      {
+        id: 'col-2',
+        name: 'College of Engineering Pune (COEP Technological University)',
+        code: 'COEP',
+        city: 'Pune',
+        state: 'Maharashtra',
+        area: 'Shivajinagar',
+        image: 'https://images.unsplash.com/photo-1541829070764-84a7d30dd3f3?auto=format&fit=crop&w=800&q=80',
+        lat: 18.5293,
+        lng: 73.8565
+      },
+      {
+        id: 'col-3',
+        name: 'Vishwakarma Institute of Technology (VIT Pune)',
+        code: 'VIT Pune',
+        city: 'Pune',
+        state: 'Maharashtra',
+        area: 'Bibwewadi',
+        image: 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&w=800&q=80',
+        lat: 18.4636,
+        lng: 73.8682
+      },
+      {
+        id: 'col-4',
+        name: 'Indian Institute of Technology Bombay (IIT Bombay)',
+        code: 'IIT Bombay',
+        city: 'Mumbai',
+        state: 'Maharashtra',
+        area: 'Powai',
+        image: 'https://images.unsplash.com/photo-1592280771190-3e2e4d571952?auto=format&fit=crop&w=800&q=80',
+        lat: 19.1334,
+        lng: 72.9133
+      },
+      {
+        id: 'col-5',
+        name: 'Veermata Jijabai Technological Institute (VJTI)',
+        code: 'VJTI',
+        city: 'Mumbai',
+        state: 'Maharashtra',
+        area: 'Matunga',
+        image: 'https://images.unsplash.com/photo-1498243691581-b145c3f54a5a?auto=format&fit=crop&w=800&q=80',
+        lat: 19.0222,
+        lng: 72.8561
+      },
+      {
+        id: 'col-6',
+        name: 'Delhi Technological University (DTU)',
+        code: 'DTU',
+        city: 'Delhi',
+        state: 'Delhi',
+        area: 'Rohini',
+        image: 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=800&q=80',
+        lat: 28.7499,
+        lng: 77.1170
+      }
+    ];
+
+    const INITIAL_PGS = [
+      {
+        id: 'pg-101',
+        ownerId: 'user-2',
+        name: 'Sunrise Luxury Student Living',
+        tagline: 'Premium Boys PG with modern study lounge & high-speed Wi-Fi',
+        genderType: 'boys',
+        rentPerMonth: 7500,
+        securityDeposit: 10000,
+        extraChargesDescription: 'Electricity billed at ₹9/unit on actual sub-meter reading.',
+        totalBeds: 24,
+        availableBeds: 5,
+        availabilityStatus: 'available',
+        sharingTypes: ['double', 'triple'],
+        address: 'Plot 42, Sector 26, Pradhikaran, Akurdi',
+        area: 'Akurdi',
+        city: 'Pune',
+        state: 'Maharashtra',
+        pincode: '411044',
+        lat: 18.6502,
+        lng: 73.7645,
+        googleMapUrl: 'https://maps.google.com/?q=18.6502,73.7645',
+        nearbyColleges: [
+          { collegeId: 'col-1', collegeName: 'PCCOE', distanceKm: 0.6, travelTimeMins: 7 },
+          { collegeId: 'col-2', collegeName: 'COEP', distanceKm: 14.5, travelTimeMins: 35 }
+        ],
+        facilities: [
+          'Wi-Fi', 'Hot water', '24-hour water', 'Washing machine', 'CCTV', 'Security', 
+          'Study table', 'Cupboard', 'Bed', 'Electricity backup', 'Housekeeping', 'Attached bathroom'
+        ],
+        photos: [
+          'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?auto=format&fit=crop&w=1000&q=80',
+          'https://images.unsplash.com/photo-1595526114035-0d45ed16cfbf?auto=format&fit=crop&w=1000&q=80'
+        ],
+        ownerName: 'Rajesh Patil',
+        ownerPhone: '+91 98220 12345',
+        ownerEmail: 'rajesh@staynest.com',
+        verifiedStatus: 'verified',
+        rating: 4.7,
+        totalReviews: 48,
+        foodAvailable: true,
+        foodDetails: '3 Meals daily (Pure Veg). Unlimited Breakfast, Lunch, and Dinner with Sunday Special.',
+        rules: ['Gate closes at 10:30 PM', 'No smoking or alcohol on premises'],
+        isDemoData: true
+      },
+      {
+        id: 'pg-102',
+        ownerId: 'user-2',
+        name: 'Sai Krupa Girls PG & Hostel',
+        tagline: 'Safe, secure & homely accommodation for female students',
+        genderType: 'girls',
+        rentPerMonth: 6800,
+        securityDeposit: 8000,
+        extraChargesDescription: 'Includes Wi-Fi, Water & Maintenance. No hidden costs.',
+        totalBeds: 18,
+        availableBeds: 2,
+        availabilityStatus: 'almost_full',
+        sharingTypes: ['single', 'double', 'triple'],
+        address: 'Near Station Road, Sector 24, Pradhikaran',
+        area: 'Akurdi',
+        city: 'Pune',
+        state: 'Maharashtra',
+        pincode: '411044',
+        lat: 18.6489,
+        lng: 73.7680,
+        googleMapUrl: 'https://maps.google.com/?q=18.6489,73.7680',
+        nearbyColleges: [
+          { collegeId: 'col-1', collegeName: 'PCCOE', distanceKm: 0.9, travelTimeMins: 10 }
+        ],
+        facilities: [
+          'Wi-Fi', 'Hot water', '24-hour water', 'Washing machine', 'CCTV', 'Security', 
+          'Study table', 'Cupboard', 'Bed', 'Attached bathroom', 'Mess/Food', 'Housekeeping'
+        ],
+        photos: [
+          'https://images.unsplash.com/photo-1598928506311-c55ded91a20c?auto=format&fit=crop&w=1000&q=80',
+          'https://images.unsplash.com/photo-1540518614846-7ede433c5172?auto=format&fit=crop&w=1000&q=80'
+        ],
+        ownerName: 'Sunita Deshmukh',
+        ownerPhone: '+91 94231 88900',
+        ownerEmail: 'saikrupa.pg@staynest-demo.com',
+        verifiedStatus: 'verified',
+        rating: 4.8,
+        totalReviews: 62,
+        foodAvailable: true,
+        foodDetails: 'Homely Maharashtrian Veg food prepared under hygienic supervision.',
+        rules: ['Strict Biometric entry system', 'Curfew time: 9:45 PM'],
+        isDemoData: true
+      },
+      {
+        id: 'pg-103',
+        ownerId: 'user-3',
+        name: 'Shivajinagar Scholars Co-Living',
+        tagline: 'Modern Unisex PG near COEP campus',
+        genderType: 'unisex',
+        rentPerMonth: 9500,
+        securityDeposit: 15000,
+        extraChargesDescription: 'Includes AC usage up to 100 units/month.',
+        totalBeds: 30,
+        availableBeds: 8,
+        availabilityStatus: 'available',
+        sharingTypes: ['single', 'double'],
+        address: 'Lane 5, Ghole Road, Shivajinagar',
+        area: 'Shivajinagar',
+        city: 'Pune',
+        state: 'Maharashtra',
+        pincode: '411005',
+        lat: 18.5285,
+        lng: 73.8540,
+        googleMapUrl: 'https://maps.google.com/?q=18.5285,73.8540',
+        nearbyColleges: [
+          { collegeId: 'col-2', collegeName: 'COEP', distanceKm: 0.8, travelTimeMins: 9 }
+        ],
+        facilities: [
+          'Wi-Fi', 'Hot water', '24-hour water', 'Washing machine', 'CCTV', 'Security', 'Study table', 'Cupboard', 'Bed'
+        ],
+        photos: [
+          'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=1000&q=80'
+        ],
+        ownerName: 'Vikram Joshi',
+        ownerPhone: '+91 98901 44556',
+        ownerEmail: 'vikram.scholars@staynest-demo.com',
+        verifiedStatus: 'verified',
+        rating: 4.6,
+        totalReviews: 35,
+        foodAvailable: false,
+        foodDetails: 'Self-cooking kitchen available.',
+        rules: ['Quiet hours after 11 PM'],
+        isDemoData: true
+      }
+    ];
+
+    const INITIAL_REVIEWS = [
+      {
+        id: 'rev-1',
+        pgId: 'pg-101',
+        authorName: 'Rohan Sharma',
+        rating: 5,
+        comment: 'Awesome place for PCCOE students! Walking distance from college campus (600m). Wi-Fi speed is around 100 Mbps.',
+        date: '2026-02-01',
+        collegeName: 'PCCOE'
+      }
+    ];
+
+    const ALL_FACILITIES = [
+      'Wi-Fi', 'Hot water', '24-hour water', 'Washing machine', 'Refrigerator', 
+      'CCTV', 'Security', 'Parking', 'Housekeeping', 'Study table', 
+      'Cupboard', 'Bed', 'Electricity backup', 'Attached bathroom', 
+      'Mess/Food', 'Kitchen', 'Laundry', 'Common area'
+    ];
+
+    // --- LEAFLET MAP VISUALIZER ---
+    function MapViewComponent({ pg, college }) {
+      const mapRef = useRef(null);
+      const instanceRef = useRef(null);
+
+      useEffect(() => {
+        if (!mapRef.current || !window.L) return;
+
+        try {
+          if (instanceRef.current) {
+            instanceRef.current.remove();
+          }
+
+          const centerLat = pg ? pg.lat : (college ? college.lat : 18.6517);
+          const centerLng = pg ? pg.lng : (college ? college.lng : 73.7616);
+
+          const map = L.map(mapRef.current).setView([centerLat, centerLng], 14);
+          instanceRef.current = map;
+
+          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+          }).addTo(map);
+
+          if (college) {
+            const colIcon = L.divIcon({
+              className: 'col-marker',
+              html: `<div style="background:#034ea2; color:white; padding:4px 8px; border-radius:12px; font-weight:bold; font-size:10px; border:2px solid white;">🎓 ${college.code}</div>`
+            });
+            L.marker([college.lat, college.lng], { icon: colIcon }).addTo(map).bindPopup(`<b>${college.name}</b>`);
+          }
+
+          if (pg) {
+            const pgIcon = L.divIcon({
+              className: 'pg-marker',
+              html: `<div style="background:#059669; color:white; padding:4px 8px; border-radius:12px; font-weight:bold; font-size:10px; border:2px solid white;">🏠 ${pg.name}</div>`
+            });
+            L.marker([pg.lat, pg.lng], { icon: pgIcon }).addTo(map).bindPopup(`<b>${pg.name}</b><br/>₹${pg.rentPerMonth}/mo`);
+          }
+
+        } catch (e) {
+          console.log('Map note:', e);
+        }
+      }, [pg, college]);
+
+      return <div ref={mapRef} className="w-full h-64 rounded-2xl overflow-hidden border border-slate-200" />;
+    }
+
+    // --- MAIN APPLICATION ---
+    function StayNestApp() {
+      const [activeTab, setActiveTab] = useState('home');
+      
+      const [colleges, setColleges] = useState(() => {
+        const saved = localStorage.getItem('staynest_colleges_v11');
+        return saved ? JSON.parse(saved) : INITIAL_COLLEGES;
+      });
+
+      const [pgs, setPgs] = useState(() => {
+        const saved = localStorage.getItem('staynest_pgs_v11');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          const existingIds = new Set(parsed.map(p => p.id));
+          const missingInitials = INITIAL_PGS.filter(p => !existingIds.has(p.id));
+          return [...parsed, ...missingInitials];
+        }
+        return INITIAL_PGS;
+      });
+
+      const [reviews, setReviews] = useState(() => {
+        const saved = localStorage.getItem('staynest_reviews_v11');
+        return saved ? JSON.parse(saved) : INITIAL_REVIEWS;
+      });
+
+      // GLOBAL USER ACCOUNTS & MANDATORY GATE AUTHENTICATION
+      const [userAccounts, setUserAccounts] = useState(() => {
+        const saved = localStorage.getItem('staynest_user_accounts_v7');
+        return saved ? JSON.parse(saved) : [
+          { id: 'user-1', name: 'Rohan Sharma', username: 'rohan123', email: 'rohan@student.com', password: 'password123', role: 'student' },
+          { id: 'user-2', name: 'Rajesh Patil', username: 'rajesh_owner', email: 'rajesh@staynest.com', password: 'password123', role: 'owner' }
+        ];
+      });
+
+      const [currentUser, setCurrentUser] = useState(() => {
+        const saved = localStorage.getItem('staynest_active_user_v7');
+        return saved ? JSON.parse(saved) : null;
+      });
+
+      // GATE AUTH FORM STATE
+      const [gateAuthTab, setGateAuthTab] = useState('login');
+      const [gateEmailOrUsername, setGateEmailOrUsername] = useState('');
+      const [gatePassword, setGatePassword] = useState('');
+      
+      const [signupName, setSignupName] = useState('');
+      const [signupUsername, setSignupUsername] = useState('');
+      const [signupEmail, setSignupEmail] = useState('');
+      const [signupRole, setSignupRole] = useState('student');
+      const [gateAuthError, setGateAuthError] = useState('');
+
+      // Filter States
+      const [searchQuery, setSearchQuery] = useState('');
+      const [selectedCollegeId, setSelectedCollegeId] = useState('all');
+      const [selectedCity, setSelectedCity] = useState('all');
+      const [maxDistanceKm, setMaxDistanceKm] = useState(20);
+      const [maxRent, setMaxRent] = useState(30000);
+      const [genderType, setGenderType] = useState('all');
+      const [sharingTypes, setSharingTypes] = useState([]);
+      const [selectedFacilities, setSelectedFacilities] = useState([]);
+      const [minRating, setMinRating] = useState(0);
+      const [sortBy, setSortBy] = useState('rent_low');
+
+      // Modals
+      const [selectedPGDetails, setSelectedPGDetails] = useState(null);
+      const [showAddPGModal, setShowAddPGModal] = useState(false);
+      const [showDocModal, setShowDocModal] = useState(false);
+      
+      // ADMIN PORTAL AUTHENTICATION (staynest.pccoe / sujal.pccoe)
+      const [showAdminPortal, setShowAdminPortal] = useState(false);
+      const [adminLoginId, setAdminLoginId] = useState('');
+      const [adminPassword, setAdminPassword] = useState('');
+      const [adminAuthed, setAdminAuthed] = useState(false);
+      const [adminError, setAdminError] = useState('');
+
+      // New Owner PG Form State
+      const [pgName, setPgName] = useState('');
+      const [pgTagline, setPgTagline] = useState('');
+      const [pgGender, setPgGender] = useState('boys');
+      const [pgAddress, setPgAddress] = useState('');
+      const [pgArea, setPgArea] = useState('');
+      const [pgCity, setPgCity] = useState('Pune');
+      const [pgPincode, setPgPincode] = useState('411044');
+      const [googleMapUrl, setGoogleMapUrl] = useState('');
+      const [rentPerMonth, setRentPerMonth] = useState(7000);
+      const [securityDeposit, setSecurityDeposit] = useState(10000);
+      const [extraCharges, setExtraCharges] = useState('Electricity billed as per sub-meter.');
+      const [totalBeds, setTotalBeds] = useState(10);
+      const [availableBeds, setAvailableBeds] = useState(3);
+      const [pgSharingTypes, setPgSharingTypes] = useState(['double', 'triple']);
+      const [pgFacilities, setPgFacilities] = useState(['Wi-Fi', 'Hot water', 'Study table', 'Cupboard', 'Bed']);
+      const [foodAvailable, setFoodAvailable] = useState(true);
+      const [foodDetails, setFoodDetails] = useState('3 Veg meals daily.');
+      
+      // Photo Uploader
+      const [customOwnerName, setCustomOwnerName] = useState(currentUser ? currentUser.name : 'StayNest Host');
+      const [ownerPhoneInput, setOwnerPhoneInput] = useState('+91 98765 43210');
+      const [nearestCollegeId, setNearestCollegeId] = useState(colleges[0]?.id || 'col-1');
+      const [distanceKmInput, setDistanceKmInput] = useState(0.8);
+      const [uploadedPhotos, setUploadedPhotos] = useState([
+        'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?auto=format&fit=crop&w=1000&q=80'
+      ]);
+      const [customUrlInput, setCustomUrlInput] = useState('');
+
+      const [nearbyCollegeInput, setNearbyCollegeInput] = useState([
+        { collegeId: colleges[0]?.id || 'col-1', collegeName: colleges[0]?.name || 'PCCOE', distanceKm: 0.8 }
+      ]);
+      const [formSubmitted, setFormSubmitted] = useState(false);
+
+      // Review Form State
+      const [revAuthor, setRevAuthor] = useState('');
+      const [revCollege, setRevCollege] = useState('');
+      const [revRating, setRevRating] = useState(5);
+      const [revComment, setRevComment] = useState('');
+
+      // Persistence to LocalStorage
+      useEffect(() => {
+        localStorage.setItem('staynest_colleges_v11', JSON.stringify(colleges));
+      }, [colleges]);
+
+      useEffect(() => {
+        localStorage.setItem('staynest_pgs_v11', JSON.stringify(pgs));
+      }, [pgs]);
+
+      useEffect(() => {
+        localStorage.setItem('staynest_reviews_v11', JSON.stringify(reviews));
+      }, [reviews]);
+
+      useEffect(() => {
+        localStorage.setItem('staynest_user_accounts_v7', JSON.stringify(userAccounts));
+      }, [userAccounts]);
+
+      useEffect(() => {
+        if (currentUser) {
+          localStorage.setItem('staynest_active_user_v7', JSON.stringify(currentUser));
+        } else {
+          localStorage.removeItem('staynest_active_user_v7');
+        }
+      }, [currentUser]);
+
+      // PUBLIC PGS FILTER (ONLY verifiedStatus === 'verified' ARE VISIBLE TO STUDENTS)
+      const publicPGs = pgs.filter(p => p.verifiedStatus === 'verified');
+      const pendingPGs = pgs.filter(p => p.verifiedStatus === 'pending');
+      const myOwnerPGs = currentUser ? pgs.filter(p => p.ownerId === currentUser.id || p.ownerEmail === currentUser.email) : [];
+
+      const filteredPGs = publicPGs.filter(pg => {
+        if (searchQuery.trim()) {
+          const q = searchQuery.toLowerCase();
+          const m1 = pg.name.toLowerCase().includes(q);
+          const m2 = pg.area.toLowerCase().includes(q);
+          const m3 = pg.city.toLowerCase().includes(q);
+          const m4 = pg.nearbyColleges.some(c => c.collegeName.toLowerCase().includes(q));
+          if (!m1 && !m2 && !m3 && !m4) return false;
+        }
+
+        if (selectedCollegeId !== 'all') {
+          const colDist = pg.nearbyColleges.find(c => c.collegeId === selectedCollegeId);
+          if (!colDist) return false;
+          if (maxDistanceKm < 20 && colDist.distanceKm > maxDistanceKm) return false;
+        }
+
+        if (selectedCity !== 'all' && pg.city.toLowerCase() !== selectedCity.toLowerCase()) return false;
+        if (pg.rentPerMonth > maxRent) return false;
+        if (genderType !== 'all' && pg.genderType !== genderType && pg.genderType !== 'unisex') return false;
+        if (sharingTypes.length > 0 && !sharingTypes.some(s => pg.sharingTypes.includes(s))) return false;
+        if (selectedFacilities.length > 0 && !selectedFacilities.every(f => pg.facilities.includes(f))) return false;
+        if (minRating > 0 && pg.rating < minRating) return false;
+
+        return true;
+      }).sort((a, b) => {
+        if (sortBy === 'rent_low') return a.rentPerMonth - b.rentPerMonth;
+        if (sortBy === 'rent_high') return b.rentPerMonth - a.rentPerMonth;
+        if (sortBy === 'rating') return b.rating - a.rating;
+        return 0;
+      });
+
+      const selectedCollege = colleges.find(c => c.id === selectedCollegeId);
+
+      // GATE AUTHENTICATION HANDLERS
+      const handleGateLogin = (e) => {
+        e.preventDefault();
+        setGateAuthError('');
+        
+        const q = gateEmailOrUsername.toLowerCase().trim();
+        const account = userAccounts.find(a => 
+          (a.email.toLowerCase() === q || a.username.toLowerCase() === q) && 
+          a.password === gatePassword
+        );
+
+        if (account) {
+          setCurrentUser(account);
+          setGateEmailOrUsername('');
+          setGatePassword('');
+          if (account.role === 'owner') {
+            setActiveTab('owner-dashboard');
+          }
+        } else {
+          setGateAuthError('Invalid Email / Username or Password. Check credentials or Create an Account.');
+        }
+      };
+
+      const handleGateSignup = (e) => {
+        e.preventDefault();
+        setGateAuthError('');
+
+        const emailEx = userAccounts.some(a => a.email.toLowerCase() === signupEmail.toLowerCase().trim());
+        if (emailEx) {
+          setGateAuthError('An account with this Email already exists. Please Log In.');
+          return;
+        }
+
+        const usernameEx = userAccounts.some(a => a.username.toLowerCase() === signupUsername.toLowerCase().trim());
+        if (usernameEx) {
+          setGateAuthError('This Username is already taken. Please pick another Username.');
+          return;
+        }
+
+        const newAccount = {
+          id: 'user-' + Date.now(),
+          name: signupName.trim(),
+          username: signupUsername.trim(),
+          email: signupEmail.trim(),
+          password: gatePassword,
+          role: signupRole
+        };
+
+        setUserAccounts(prev => [...prev, newAccount]);
+        setCurrentUser(newAccount);
+        setSignupName('');
+        setSignupUsername('');
+        setSignupEmail('');
+        setGatePassword('');
+        if (newAccount.role === 'owner') {
+          setActiveTab('owner-dashboard');
+        }
+        alert('🎉 Account created successfully! Welcome to StayNest.');
+      };
+
+      const handleQuickDemoStudent = () => {
+        const student = userAccounts.find(a => a.role === 'student') || userAccounts[0];
+        setCurrentUser(student);
+        setActiveTab('home');
+      };
+
+      const handleQuickDemoOwner = () => {
+        const owner = userAccounts.find(a => a.role === 'owner') || userAccounts[1];
+        setCurrentUser(owner);
+        setActiveTab('owner-dashboard');
+      };
+
+      const handleUserLogout = () => {
+        setCurrentUser(null);
+        localStorage.removeItem('staynest_active_user_v7');
+        setActiveTab('home');
+      };
+
+      // ADMIN PORTAL AUTHENTICATION HANDLER
+      const handleAdminLogin = (e) => {
+        e.preventDefault();
+        setAdminError('');
+
+        if (adminLoginId.trim() === 'staynest.pccoe' && adminPassword === 'sujal.pccoe') {
+          setAdminAuthed(true);
+          setAdminLoginId('');
+          setAdminPassword('');
+        } else {
+          setAdminError('Invalid Admin Credentials! Use Login ID: staynest.pccoe | Password: sujal.pccoe');
+        }
+      };
+
+      // API DATABASE & DISK FILE UPLOADS INTEGRATION
+      useEffect(() => {
+        fetch('http://localhost:5000/api/pgs/all')
+          .then(res => res.json())
+          .then(data => {
+            if (data.success && data.pgs && data.pgs.length > 0) {
+              setPgs(data.pgs);
+            }
+          })
+          .catch(err => console.log('API Database note:', err));
+      }, []);
+
+      // Photo Upload Handlers (Option 2: Saves to server uploads/ directory)
+      const handleFileUpload = (e) => {
+        const files = Array.from(e.target.files);
+        files.forEach(file => {
+          const reader = new FileReader();
+          reader.onload = (event) => {
+            if (event.target.result) {
+              fetch('http://localhost:5000/api/upload', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ dataUrl: event.target.result })
+              })
+              .then(res => res.json())
+              .then(data => {
+                if (data.photos && data.photos.length > 0) {
+                  setUploadedPhotos(prev => [...prev, ...data.photos]);
+                } else {
+                  setUploadedPhotos(prev => [...prev, event.target.result]);
+                }
+              })
+              .catch(err => {
+                setUploadedPhotos(prev => [...prev, event.target.result]);
+              });
+            }
+          };
+          reader.readAsDataURL(file);
+        });
+      };
+
+      const handleAddCustomUrl = () => {
+        if (customUrlInput.trim()) {
+          setUploadedPhotos(prev => [...prev, customUrlInput.trim()]);
+          setCustomUrlInput('');
+        }
+      };
+
+      const handleRemovePhoto = (index) => {
+        const photoToRemove = uploadedPhotos[index];
+        if (photoToRemove && photoToRemove.includes('/uploads/')) {
+          fetch('http://localhost:5000/api/upload/delete', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ photoUrl: photoToRemove })
+          }).catch(err => console.log('Disk unlink note:', err));
+        }
+        setUploadedPhotos(prev => prev.filter((_, idx) => idx !== index));
+      };
+
+      // OWNER SUBMIT PG HANDLER
+      const handleOwnerSubmit = (e) => {
+        e.preventDefault();
+        
+        const finalPhotos = uploadedPhotos.length > 0 ? uploadedPhotos : [
+          'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?auto=format&fit=crop&w=1000&q=80'
+        ];
+
+        const newPG = {
+          id: 'pg-user-' + Date.now(),
+          ownerId: currentUser ? currentUser.id : 'user-guest',
+          name: pgName,
+          tagline: pgTagline || 'Student PG Accommodation',
+          genderType: pgGender,
+          rentPerMonth: Number(rentPerMonth),
+          securityDeposit: Number(securityDeposit),
+          extraChargesDescription: extraCharges,
+          totalBeds: Number(totalBeds),
+          availableBeds: Number(availableBeds),
+          availabilityStatus: availableBeds > 3 ? 'available' : 'almost_full',
+          sharingTypes: pgSharingTypes,
+          address: pgAddress,
+          area: pgArea,
+          city: pgCity,
+          state: 'Maharashtra',
+          pincode: pgPincode,
+          lat: 18.6502 + (Math.random() * 0.02 - 0.01),
+          lng: 73.7645 + (Math.random() * 0.02 - 0.01),
+          googleMapUrl: googleMapUrl || `https://maps.google.com/?q=${encodeURIComponent(pgArea + ', ' + pgCity)}`,
+          nearbyColleges: [
+            {
+              collegeId: nearestCollegeId,
+              collegeName: colleges.find(c => c.id === nearestCollegeId)?.code || 'PCCOE',
+              distanceKm: Number(distanceKmInput),
+              travelTimeMins: Math.round(Number(distanceKmInput) * 10)
+            }
+          ],
+          facilities: pgFacilities,
+          photos: finalPhotos,
+          ownerName: customOwnerName.trim() || (currentUser ? currentUser.name : 'StayNest Host'),
+          ownerPhone: ownerPhoneInput.trim() || '+91 98765 43210',
+          ownerEmail: currentUser ? currentUser.email : 'owner@staynest.com',
+          verifiedStatus: 'pending',
+          rating: 4.5,
+          totalReviews: 1,
+          foodAvailable,
+          foodDetails,
+          rules: ['Gate closes at 10 PM'],
+          isDemoData: false
+        };
+
+        fetch('http://localhost:5000/api/pgs', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(newPG)
+        }).catch(err => console.log('DB sync note:', err));
+
+        setPgs(prev => [newPG, ...prev]);
+        setFormSubmitted(true);
+      };
+
+      // Bed availability quick update
+      const handleUpdateBeds = (pgId, newBeds) => {
+        fetch(`http://localhost:5000/api/pgs/${pgId}/beds`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ availableBeds: newBeds })
+        }).catch(err => console.log('Beds DB update note:', err));
+
+        setPgs(prev => prev.map(p => p.id === pgId ? { ...p, availableBeds: Math.max(0, newBeds) } : p));
+      };
+
+      // ADMIN VERIFICATION HANDLER
+      const handleAdminUpdateStatus = (pgId, status) => {
+        fetch(`http://localhost:5000/api/admin/pgs/${pgId}/status`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status })
+        }).catch(err => console.log('Admin status update note:', err));
+
+        setPgs(prev => prev.map(p => p.id === pgId ? { ...p, verifiedStatus: status } : p));
+        alert(status === 'verified' ? '🟢 PG Verified & Published Live for Students!' : '🔴 PG Submission Rejected');
+      };
+
+      // DELETE PG HANDLERS (FOR OWNER AND ADMIN - REMOVES RECORD & DISK IMAGES)
+      const handleDeleteOwnerPG = (pgId, pgName) => {
+        if (confirm(`Are you sure you want to delete "${pgName}" from your properties?`)) {
+          fetch(`http://localhost:5000/api/pgs/${pgId}`, { method: 'DELETE' })
+            .catch(err => console.log('Delete note:', err));
+          setPgs(prev => prev.filter(p => p.id !== pgId));
+          alert(`🗑️ "${pgName}" and its uploaded images have been deleted.`);
+        }
+      };
+
+      const handleDeleteAdminPG = (pgId, pgName) => {
+        if (confirm(`ADMIN ACTION: Are you sure you want to permanently delete "${pgName}"?`)) {
+          fetch(`http://localhost:5000/api/pgs/${pgId}`, { method: 'DELETE' })
+            .catch(err => console.log('Delete note:', err));
+          setPgs(prev => prev.filter(p => p.id !== pgId));
+          alert(`🗑️ "${pgName}" deleted by Admin.`);
+        }
+      };
+
+      // Student Add Review
+      const handleAddReview = (e) => {
+        e.preventDefault();
+        if (!selectedPGDetails) return;
+
+        const newRev = {
+          id: 'rev-' + Date.now(),
+          pgId: selectedPGDetails.id,
+          authorName: currentUser ? currentUser.name : 'Student',
+          rating: Number(revRating),
+          comment: revComment,
+          date: new Date().toISOString().split('T')[0],
+          collegeName: revCollege || 'College Student'
+        };
+
+        setReviews(prev => [newRev, ...prev]);
+        
+        const pgRevList = [...reviews.filter(r => r.pgId === selectedPGDetails.id), newRev];
+        const avg = (pgRevList.reduce((acc, r) => acc + r.rating, 0) / pgRevList.length).toFixed(1);
+        
+        setPgs(prev => prev.map(p => p.id === selectedPGDetails.id ? { ...p, rating: parseFloat(avg), totalReviews: pgRevList.length } : p));
+        setSelectedPGDetails(prev => ({ ...prev, rating: parseFloat(avg), totalReviews: pgRevList.length }));
+
+        setRevComment('');
+        setRevAuthor('');
+        alert('Review submitted successfully!');
+      };
+
+      // --- MANDATORY LOGIN GATEWAY SCREEN (IF NOT LOGGED IN) ---
+      if (!currentUser) {
+        return (
+          <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-sky-950 flex items-center justify-center p-4 selection:bg-brand-500 selection:text-white">
+            <div className="bg-white rounded-3xl max-w-md w-full p-8 space-y-6 shadow-2xl border border-slate-200">
+              
+              <div className="text-center space-y-2">
+                <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-sky-700 to-sky-500 flex items-center justify-center text-white text-3xl mx-auto shadow-lg shadow-sky-500/20">
+                  🏠
+                </div>
+                <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">StayNest Student PG Finder</h1>
+                <p className="text-xs text-slate-500">
+                  Please Sign In or Create an Account to search verified PG accommodations near your college campus.
+                </p>
+              </div>
+
+              <div className="flex border-b border-slate-200 gap-4 text-xs font-extrabold">
+                <button
+                  onClick={() => { setGateAuthTab('login'); setGateAuthError(''); }}
+                  className={`pb-2 transition-all flex-1 text-center ${gateAuthTab === 'login' ? 'text-sky-600 border-b-2 border-sky-600' : 'text-slate-400 hover:text-slate-700'}`}
+                >
+                  🔐 User Sign In
+                </button>
+                <button
+                  onClick={() => { setGateAuthTab('signup'); setGateAuthError(''); }}
+                  className={`pb-2 transition-all flex-1 text-center ${gateAuthTab === 'signup' ? 'text-sky-600 border-b-2 border-sky-600' : 'text-slate-400 hover:text-slate-700'}`}
+                >
+                  📝 Create Account
+                </button>
+              </div>
+
+              {gateAuthError && (
+                <div className="p-3 bg-rose-50 border border-rose-200 text-rose-800 text-xs font-bold rounded-xl text-center">
+                  {gateAuthError}
+                </div>
+              )}
+
+              {gateAuthTab === 'login' ? (
+                <form onSubmit={handleGateLogin} className="space-y-4 text-xs">
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1">Email or Username</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. rohan@student.com or rohan123"
+                      value={gateEmailOrUsername}
+                      onChange={e => setGateEmailOrUsername(e.target.value)}
+                      className="w-full p-3 border border-slate-300 rounded-xl bg-slate-50 focus:bg-white font-medium focus:ring-2 focus:ring-sky-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1">Password</label>
+                    <input
+                      type="password"
+                      required
+                      placeholder="Enter password (e.g. password123)"
+                      value={gatePassword}
+                      onChange={e => setGatePassword(e.target.value)}
+                      className="w-full p-3 border border-slate-300 rounded-xl bg-slate-50 focus:bg-white font-medium focus:ring-2 focus:ring-sky-500"
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="w-full py-3.5 bg-gradient-to-r from-sky-700 to-sky-500 hover:from-sky-600 hover:to-sky-400 text-white font-extrabold text-xs rounded-xl shadow-lg shadow-sky-600/20 active:scale-95 transition-all"
+                  >
+                    Log In & Enter StayNest
+                  </button>
+
+                  <div className="pt-2 text-center space-y-2">
+                    <span className="text-[11px] text-slate-400 font-semibold block">Or Quick Login for Instant Demo:</span>
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={handleQuickDemoStudent}
+                        className="flex-1 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold rounded-lg text-[11px]"
+                      >
+                        🎓 Student Demo
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleQuickDemoOwner}
+                        className="flex-1 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold rounded-lg text-[11px] border border-emerald-200"
+                      >
+                        🏠 PG Owner Demo
+                      </button>
+                    </div>
+                  </div>
+                </form>
+              ) : (
+                <form onSubmit={handleGateSignup} className="space-y-3 text-xs">
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1">Full Name *</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. Rohan Sharma"
+                      value={signupName}
+                      onChange={e => setSignupName(e.target.value)}
+                      className="w-full p-2.5 border border-slate-300 rounded-xl bg-slate-50 focus:bg-white font-medium"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="block font-bold text-slate-700 mb-1">Username *</label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="rohan123"
+                        value={signupUsername}
+                        onChange={e => setSignupUsername(e.target.value)}
+                        className="w-full p-2.5 border border-slate-300 rounded-xl bg-slate-50 focus:bg-white font-medium"
+                      />
+                    </div>
+                    <div>
+                      <label className="block font-bold text-slate-700 mb-1">Account Role *</label>
+                      <select
+                        value={signupRole}
+                        onChange={e => setSignupRole(e.target.value)}
+                        className="w-full p-2.5 border border-slate-300 rounded-xl bg-slate-50 font-bold"
+                      >
+                        <option value="student">Student / Parent</option>
+                        <option value="owner">PG Owner / Landlord</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1">Email Address *</label>
+                    <input
+                      type="email"
+                      required
+                      placeholder="rohan@student.com"
+                      value={signupEmail}
+                      onChange={e => setSignupEmail(e.target.value)}
+                      className="w-full p-2.5 border border-slate-300 rounded-xl bg-slate-50 focus:bg-white font-medium"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1">Create Password *</label>
+                    <input
+                      type="password"
+                      required
+                      placeholder="Create secret password"
+                      value={gatePassword}
+                      onChange={e => setGatePassword(e.target.value)}
+                      className="w-full p-2.5 border border-slate-300 rounded-xl bg-slate-50 focus:bg-white font-medium"
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="w-full py-3.5 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs rounded-xl shadow-lg shadow-emerald-600/20 active:scale-95 transition-all mt-2"
+                  >
+                    Create Account & Enter Website
+                  </button>
+                </form>
+              )}
+
+            </div>
+          </div>
+        );
+      }
+
+      // --- FULL WEBSITE VIEW (ONCE LOGGED IN) ---
+      return (
+        <div className="min-h-screen flex flex-col">
+          
+          {/* Header Navbar */}
+          <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-sm">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+              
+              <div className="flex items-center gap-6">
+                <button onClick={() => { setActiveTab('home'); setShowAdminPortal(false); }} className="flex items-center gap-2.5 text-left">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-700 to-sky-500 flex items-center justify-center text-white font-bold text-xl shadow-md">
+                    🏠
+                  </div>
+                  <div>
+                    <span className="text-xl font-extrabold tracking-tight text-slate-900">StayNest</span>
+                    <span className="block text-[10px] font-bold text-sky-600 uppercase tracking-wider -mt-1">Student PG Finder</span>
+                  </div>
+                </button>
+
+                <div className="hidden lg:flex items-center bg-slate-100 border border-slate-200 rounded-lg px-2.5 py-1 text-xs">
+                  <span className="text-slate-500 font-semibold mr-1.5">Campus:</span>
+                  <select
+                    value={selectedCollegeId}
+                    onChange={(e) => { setSelectedCollegeId(e.target.value); setActiveTab('pgs'); setShowAdminPortal(false); }}
+                    className="bg-transparent font-bold text-slate-800 focus:outline-none cursor-pointer max-w-[180px] truncate"
+                  >
+                    <option value="all">All Colleges / Cities</option>
+                    {colleges.map(c => (
+                      <option key={c.id} value={c.id}>{c.code} ({c.city})</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <nav className="flex items-center gap-2 text-xs font-bold">
+                <button 
+                  onClick={() => { setActiveTab('home'); setShowAdminPortal(false); }}
+                  className={`px-3 py-2 rounded-lg transition-colors ${activeTab === 'home' && !showAdminPortal ? 'bg-sky-50 text-sky-700' : 'text-slate-600 hover:bg-slate-100'}`}
+                >
+                  Home
+                </button>
+                <button 
+                  onClick={() => { setActiveTab('pgs'); setShowAdminPortal(false); }}
+                  className={`px-3 py-2 rounded-lg transition-colors ${activeTab === 'pgs' && !showAdminPortal ? 'bg-sky-50 text-sky-700' : 'text-slate-600 hover:bg-slate-100'}`}
+                >
+                  Search PGs ({publicPGs.length})
+                </button>
+                <button 
+                  onClick={() => { setActiveTab('colleges'); setShowAdminPortal(false); }}
+                  className={`px-3 py-2 rounded-lg transition-colors ${activeTab === 'colleges' && !showAdminPortal ? 'bg-sky-50 text-sky-700' : 'text-slate-600 hover:bg-slate-100'}`}
+                >
+                  Colleges
+                </button>
+                
+                {currentUser.role === 'owner' ? (
+                  <button 
+                    onClick={() => { setActiveTab('owner-dashboard'); setShowAdminPortal(false); }}
+                    className={`px-3 py-2 rounded-lg transition-colors flex items-center gap-1 ${activeTab === 'owner-dashboard' ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-emerald-50 text-emerald-700 border border-emerald-200'}`}
+                  >
+                    👤 Owner Dashboard
+                  </button>
+                ) : (
+                  <button 
+                    onClick={() => setShowAddPGModal(true)}
+                    className="px-3 py-2 rounded-lg text-emerald-700 hover:bg-emerald-50 border border-emerald-200"
+                  >
+                    📷 + Add Your PG
+                  </button>
+                )}
+
+                <button 
+                  onClick={() => setShowDocModal(true)}
+                  className="px-3 py-2 rounded-lg text-sky-700 hover:bg-sky-50"
+                >
+                  Docs
+                </button>
+
+                <button 
+                  onClick={() => setShowAdminPortal(true)}
+                  className="px-3 py-2 rounded-lg bg-slate-900 text-amber-400 font-extrabold shadow-sm hover:bg-slate-800"
+                >
+                  🛡️ Admin Portal ({pendingPGs.length})
+                </button>
+
+                <div className="flex items-center gap-2 pl-2 border-l border-slate-200">
+                  <div className="px-2.5 py-1 rounded-full bg-slate-100 text-slate-800 flex items-center gap-1.5 border border-slate-300">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                    <span className="font-extrabold">{currentUser.username}</span>
+                    <span className="text-[10px] text-slate-500 uppercase font-bold">({currentUser.role})</span>
+                  </div>
+                  <button
+                    onClick={handleUserLogout}
+                    className="px-3 py-1 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-extrabold transition-all shadow-sm"
+                    title="Click to Logout and show Login Gate"
+                  >
+                    🚪 Logout
+                  </button>
+                </div>
+              </nav>
+
+            </div>
+          </header>
+
+          {/* Safety Disclaimer Banner */}
+          <div className="bg-amber-50 border-b border-amber-200 py-2.5 px-4 text-center text-xs font-semibold text-amber-900">
+            ⚠️ <strong>Student Safety Disclaimer:</strong> Students & parents should personally verify property location, owner credentials, monthly rent, and security deposit before making payments.
+          </div>
+
+          {/* Main Content Area */}
+          <main className="flex-1">
+            
+            {/* OWNER DASHBOARD VIEW (WITH DELETE PG OPTION) */}
+            {activeTab === 'owner-dashboard' && currentUser.role === 'owner' && !showAdminPortal ? (
+              <div className="max-w-7xl mx-auto px-4 py-8 space-y-6">
+                <div className="p-6 bg-gradient-to-r from-slate-900 via-sky-950 to-slate-900 text-white rounded-3xl shadow-xl flex justify-between items-center">
+                  <div>
+                    <span className="px-3 py-1 bg-emerald-500/20 text-emerald-300 rounded-full text-xs font-bold border">Logged In Owner</span>
+                    <h1 className="text-3xl font-extrabold mt-2">Welcome, {currentUser.name}!</h1>
+                    <p className="text-xs text-slate-300 mt-1">Manage your PG properties, update beds available, or delete old listings</p>
+                  </div>
+                  <button onClick={() => setShowAddPGModal(true)} className="px-4 py-2.5 bg-emerald-600 text-white font-bold text-xs rounded-xl shadow-md">+ Add New PG Property</button>
+                </div>
+
+                <div className="space-y-4">
+                  <h2 className="text-xl font-extrabold text-slate-900">My Registered Properties ({myOwnerPGs.length})</h2>
+                  
+                  {myOwnerPGs.length === 0 ? (
+                    <div className="p-12 text-center bg-white rounded-3xl border border-slate-200 space-y-3">
+                      <div className="text-4xl">🏠</div>
+                      <h3 className="text-lg font-bold text-slate-800">No properties added yet</h3>
+                      <p className="text-xs text-slate-500 max-w-sm mx-auto">
+                        Click the button below to register your first PG property with photos, rent, facilities, and campus location!
+                      </p>
+                      <button onClick={() => setShowAddPGModal(true)} className="px-5 py-2.5 bg-emerald-600 text-white font-bold text-xs rounded-xl hover:bg-emerald-700">
+                        + Register Your PG Property
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {myOwnerPGs.map(pg => (
+                        <div key={pg.id} className="bg-white rounded-3xl border border-slate-200 p-5 space-y-3 shadow-sm">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              {pg.verifiedStatus === 'verified' ? (
+                                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">🟢 Verified & Live</span>
+                              ) : (
+                                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">🟡 Pending Admin Verification</span>
+                              )}
+                              <h3 className="font-extrabold text-slate-900 text-lg mt-1">{pg.name}</h3>
+                              <p className="text-xs text-slate-500">📍 {pg.address}, {pg.area}, {pg.city}</p>
+                            </div>
+                            <span className="text-xl font-extrabold text-sky-700">₹{pg.rentPerMonth}/mo</span>
+                          </div>
+
+                          {pg.photos && pg.photos.length > 0 && (
+                            <div className="flex gap-2 overflow-x-auto py-1">
+                              {pg.photos.map((img, i) => (
+                                <img key={i} src={img} className="w-16 h-16 rounded-lg object-cover border" />
+                              ))}
+                            </div>
+                          )}
+
+                          <div className="grid grid-cols-3 gap-2 p-3 bg-slate-50 rounded-2xl text-xs">
+                            <div>
+                              <span className="text-[10px] text-slate-400 font-bold block uppercase">Security Deposit</span>
+                              <span className="font-extrabold text-slate-900">₹{pg.securityDeposit}</span>
+                            </div>
+                            <div>
+                              <span className="text-[10px] text-slate-400 font-bold block uppercase">Available Beds</span>
+                              <div className="flex items-center gap-1 mt-0.5">
+                                <button onClick={() => handleUpdateBeds(pg.id, pg.availableBeds - 1)} className="w-5 h-5 bg-slate-200 font-bold rounded text-center text-xs">-</button>
+                                <span className="font-extrabold text-emerald-700 px-1">{pg.availableBeds}</span>
+                                <button onClick={() => handleUpdateBeds(pg.id, pg.availableBeds + 1)} className="w-5 h-5 bg-slate-200 font-bold rounded text-center text-xs">+</button>
+                              </div>
+                            </div>
+                            <div>
+                              <span className="text-[10px] text-slate-400 font-bold block uppercase">Total Beds</span>
+                              <span className="font-extrabold text-slate-800">{pg.totalBeds} Beds</span>
+                            </div>
+                          </div>
+
+                          {/* OWNER PROPERTY ACTIONS (INCLUDES DELETE PG BUTTON) */}
+                          <div className="flex gap-2 pt-2 border-t border-slate-100">
+                            <button onClick={() => setSelectedPGDetails(pg)} className="flex-1 py-2 bg-sky-50 text-sky-700 font-bold text-xs rounded-xl hover:bg-sky-100">
+                              Preview Public Listing
+                            </button>
+                            <button
+                              onClick={() => handleDeleteOwnerPG(pg.id, pg.name)}
+                              className="px-4 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs rounded-xl border border-rose-200 transition-colors flex items-center gap-1"
+                            >
+                              🗑️ Delete Property
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : null}
+
+            {/* ADMIN PORTAL VIEW (WITH DELETE PG OPTION) */}
+            {showAdminPortal ? (
+              <div className="max-w-7xl mx-auto px-4 py-8 space-y-6">
+                {!adminAuthed ? (
+                  <div className="max-w-md mx-auto p-8 bg-white rounded-3xl border border-slate-200 shadow-xl text-center space-y-4">
+                    <div className="w-16 h-16 bg-slate-900 text-amber-400 rounded-2xl flex items-center justify-center text-2xl font-bold mx-auto">🛡️</div>
+                    <h2 className="text-2xl font-extrabold text-slate-900">Admin Control Center</h2>
+                    <p className="text-xs text-slate-500">Review owner submissions, inspect photos, approve or delete PG listings</p>
+                    
+                    {adminError && (
+                      <div className="p-3 bg-rose-50 border border-rose-200 text-rose-800 text-xs font-bold rounded-xl text-center">
+                        {adminError}
+                      </div>
+                    )}
+
+                    <form onSubmit={handleAdminLogin} className="space-y-3 text-xs text-left">
+                      <div>
+                        <label className="block font-bold text-slate-700 mb-1">Admin Login ID</label>
+                        <input
+                          type="text"
+                          required
+                          placeholder="staynest.pccoe"
+                          value={adminLoginId}
+                          onChange={e => setAdminLoginId(e.target.value)}
+                          className="w-full p-3 border rounded-xl font-bold bg-slate-50 focus:bg-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="block font-bold text-slate-700 mb-1">Admin Password</label>
+                        <input
+                          type="password"
+                          required
+                          placeholder="sujal.pccoe"
+                          value={adminPassword}
+                          onChange={e => setAdminPassword(e.target.value)}
+                          className="w-full p-3 border rounded-xl font-bold bg-slate-50 focus:bg-white"
+                        />
+                      </div>
+                      <button type="submit" className="w-full py-3.5 bg-slate-900 text-white font-extrabold text-xs rounded-xl hover:bg-slate-800 shadow-md">
+                        Login to Admin Portal
+                      </button>
+                    </form>
+
+                    <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-[11px] text-amber-900 text-left space-y-1">
+                      <p className="font-bold">🔑 PCCOE Admin Credentials:</p>
+                      <p>Login ID: <code className="font-bold bg-amber-100 px-1 rounded">staynest.pccoe</code></p>
+                      <p>Password: <code className="font-bold bg-amber-100 px-1 rounded">sujal.pccoe</code></p>
+                    </div>
+
+                    <button 
+                      onClick={() => { setAdminLoginId('staynest.pccoe'); setAdminPassword('sujal.pccoe'); setAdminAuthed(true); }}
+                      className="text-xs text-sky-600 font-bold hover:underline block mx-auto pt-1"
+                    >
+                      ⚡ Quick PCCOE Admin Auto-Login
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-6">
+                    <div className="p-6 bg-slate-900 text-white rounded-3xl flex justify-between items-center shadow-xl">
+                      <div>
+                        <h1 className="text-2xl font-extrabold">Administrator Dashboard</h1>
+                        <p className="text-xs text-slate-400 mt-1">Logged in as Administrator: <strong>staynest.pccoe</strong></p>
+                      </div>
+                      <button onClick={() => setAdminAuthed(false)} className="px-4 py-2 bg-rose-600 text-white text-xs font-bold rounded-xl">Logout Admin</button>
+                    </div>
+
+                    {/* Stats Summary */}
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                      <div className="p-4 bg-white rounded-2xl border border-slate-200">
+                        <span className="text-[10px] font-bold uppercase text-slate-400 block">Total Colleges</span>
+                        <span className="text-2xl font-extrabold">{colleges.length}</span>
+                      </div>
+                      <div className="p-4 bg-white rounded-2xl border border-slate-200">
+                        <span className="text-[10px] font-bold uppercase text-slate-400 block">Total PGs</span>
+                        <span className="text-2xl font-extrabold">{pgs.length}</span>
+                      </div>
+                      <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-200">
+                        <span className="text-[10px] font-bold uppercase text-emerald-700 block">🟢 Verified PGs</span>
+                        <span className="text-2xl font-extrabold text-emerald-800">{publicPGs.length}</span>
+                      </div>
+                      <div className="p-4 bg-amber-50 rounded-2xl border border-amber-200">
+                        <span className="text-[10px] font-bold uppercase text-amber-800 block">🟡 Pending Approvals</span>
+                        <span className="text-2xl font-extrabold text-amber-900">{pendingPGs.length}</span>
+                      </div>
+                    </div>
+
+                    {/* PENDING OWNER SUBMISSIONS QUEUE WITH DELETE BUTTON */}
+                    <div className="space-y-4">
+                      <h2 className="text-lg font-bold text-slate-900">Owner Submissions Pending Verification ({pendingPGs.length})</h2>
+                      {pendingPGs.length === 0 ? (
+                        <div className="p-8 bg-white rounded-2xl border border-slate-200 text-center text-xs text-slate-500 font-semibold">
+                          🎉 No pending owner submissions! All submitted PGs have been reviewed and verified.
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {pendingPGs.map(pg => (
+                            <div key={pg.id} className="p-5 bg-white rounded-2xl border border-slate-200 shadow-sm space-y-3">
+                              <div className="flex justify-between items-start">
+                                <div>
+                                  <span className="px-2 py-0.5 rounded text-[10px] font-extrabold bg-amber-100 text-amber-800 uppercase">🟡 Pending Admin Verification</span>
+                                  <h3 className="font-extrabold text-slate-900 text-base mt-1">{pg.name}</h3>
+                                  <p className="text-xs text-slate-500">{pg.address}, {pg.area}, {pg.city}</p>
+                                </div>
+                                <span className="font-extrabold text-sky-700 text-base">₹{pg.rentPerMonth}/mo</span>
+                              </div>
+
+                              {pg.photos && pg.photos.length > 0 && (
+                                <div className="flex gap-2 overflow-x-auto py-1">
+                                  {pg.photos.map((img, i) => (
+                                    <img key={i} src={img} className="w-16 h-16 rounded-lg object-cover border" />
+                                  ))}
+                                </div>
+                              )}
+
+                              <div className="p-3 bg-slate-50 rounded-xl text-xs space-y-1">
+                                <p className="font-bold text-slate-800">Owner: {pg.ownerName} ({pg.ownerPhone})</p>
+                                <p className="text-slate-600">Security Deposit: ₹{pg.securityDeposit}</p>
+                                <p className="text-slate-600">Beds: {pg.availableBeds} / {pg.totalBeds} Beds</p>
+                              </div>
+
+                              <div className="flex gap-2 pt-2">
+                                <button onClick={() => setSelectedPGDetails(pg)} className="flex-1 py-2 bg-slate-100 text-slate-800 font-bold text-xs rounded-xl">Inspect Details</button>
+                                <button onClick={() => handleAdminUpdateStatus(pg.id, 'verified')} className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl shadow-sm">
+                                  Approve & Verify (🟢)
+                                </button>
+                                <button onClick={() => handleDeleteAdminPG(pg.id, pg.name)} className="px-3.5 py-2 bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-xs rounded-xl shadow-sm">
+                                  🗑️ Delete
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* MANAGE ALL PGS TABLE WITH DELETE BUTTON */}
+                    <div className="space-y-4 border-t pt-4">
+                      <h2 className="text-lg font-bold text-slate-900">Manage All Property Listings ({pgs.length})</h2>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {pgs.map(pg => (
+                          <div key={pg.id} className="p-5 bg-white rounded-2xl border border-slate-200 shadow-sm space-y-3">
+                            <div className="flex justify-between items-start">
+                              <div>
+                                <span className={`px-2 py-0.5 rounded text-[10px] font-extrabold uppercase ${pg.verifiedStatus === 'verified' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}`}>
+                                  {pg.verifiedStatus === 'verified' ? '🟢 Verified & Live' : '🟡 Pending'}
+                                </span>
+                                <h3 className="font-extrabold text-slate-900 text-base mt-1">{pg.name}</h3>
+                                <p className="text-xs text-slate-500">{pg.address}, {pg.area}, {pg.city}</p>
+                              </div>
+                              <span className="font-extrabold text-sky-700 text-base">₹{pg.rentPerMonth}/mo</span>
+                            </div>
+
+                            <div className="flex gap-2 pt-2">
+                              <button onClick={() => setSelectedPGDetails(pg)} className="flex-1 py-2 bg-slate-100 text-slate-800 font-bold text-xs rounded-xl">Inspect</button>
+                              {pg.verifiedStatus !== 'verified' ? (
+                                <button onClick={() => handleAdminUpdateStatus(pg.id, 'verified')} className="flex-1 py-2 bg-emerald-600 text-white font-bold text-xs rounded-xl">Approve (🟢)</button>
+                              ) : (
+                                <button onClick={() => handleAdminUpdateStatus(pg.id, 'pending')} className="flex-1 py-2 bg-amber-100 text-amber-800 font-bold text-xs rounded-xl">Unverify</button>
+                              )}
+                              <button onClick={() => handleDeleteAdminPG(pg.id, pg.name)} className="px-3.5 py-2 bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-xs rounded-xl shadow-sm">
+                                🗑️ Delete
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                  </div>
+                )}
+              </div>
+            ) : null}
+
+            {/* HOME TAB VIEW */}
+            {activeTab === 'home' && !showAdminPortal && (
+              <div className="space-y-12">
+                <div className="bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 text-white py-16 px-4 text-center">
+                  <span className="px-3.5 py-1.5 rounded-full bg-sky-500/20 text-sky-300 text-xs font-bold border border-sky-500/30">
+                    ✨ Welcome back, {currentUser.name}! ({currentUser.role})
+                  </span>
+                  <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight mt-4 leading-tight">
+                    Find the Right PG <span className="text-sky-400">Near Your College</span>
+                  </h1>
+                  <p className="text-slate-300 text-sm max-w-xl mx-auto mt-3">
+                    Works for students from ANY college across India (PCCOE, COEP, VIT, IIT Bombay, VJTI, DTU).
+                  </p>
+
+                  <div className="max-w-3xl mx-auto mt-8 bg-white/10 backdrop-blur-md p-3 rounded-2xl border border-white/20 grid grid-cols-1 sm:grid-cols-12 gap-2 text-left">
+                    <input
+                      type="text"
+                      placeholder="Enter college name (e.g. PCCOE, COEP, IIT)..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="sm:col-span-6 bg-white text-slate-900 p-3 rounded-xl text-xs font-medium focus:outline-none"
+                    />
+                    <select
+                      value={selectedCollegeId}
+                      onChange={(e) => setSelectedCollegeId(e.target.value)}
+                      className="sm:col-span-4 bg-white text-slate-900 p-3 rounded-xl text-xs font-bold"
+                    >
+                      <option value="all">All Colleges / Cities</option>
+                      {colleges.map(c => <option key={c.id} value={c.id}>{c.name} ({c.city})</option>)}
+                    </select>
+                    <button
+                      onClick={() => setActiveTab('pgs')}
+                      className="sm:col-span-2 bg-sky-600 hover:bg-sky-500 text-white font-bold p-3 rounded-xl text-xs"
+                    >
+                      Search PGs
+                    </button>
+                  </div>
+                </div>
+
+                <div className="max-w-7xl mx-auto px-4 space-y-4 pb-12">
+                  <h2 className="text-2xl font-extrabold text-slate-900">Featured Verified PGs ({publicPGs.length})</h2>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                    {publicPGs.map(pg => {
+                      const dist = selectedCollegeId !== 'all' 
+                        ? pg.nearbyColleges.find(c => c.collegeId === selectedCollegeId) 
+                        : (pg.nearbyColleges && pg.nearbyColleges[0] ? pg.nearbyColleges[0] : { distanceKm: 0.6, collegeName: 'PCCOE' });
+                      return (
+                        <div key={pg.id} className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-lg transition-all flex flex-col justify-between">
+                          <div>
+                            <div className="relative h-44 w-full bg-slate-100">
+                              <img src={pg.photos[0]} className="w-full h-full object-cover" />
+                              <span className="absolute top-3 left-3 text-xs font-bold text-emerald-800 bg-emerald-100/90 backdrop-blur-sm px-2.5 py-0.5 rounded-full border border-emerald-200">
+                                🟢 Verified PG
+                              </span>
+                              {dist && (
+                                <span className="absolute bottom-3 left-3 text-[11px] font-bold text-amber-300 bg-slate-900/90 px-2.5 py-1 rounded-lg border border-slate-700 shadow-md">
+                                  🎓 {dist.distanceKm} km from {dist.collegeName}
+                                </span>
+                              )}
+                            </div>
+
+                            <div className="p-4 space-y-2">
+                              <div className="flex justify-between items-start">
+                                <h3 className="font-extrabold text-slate-900 text-base">{pg.name}</h3>
+                                <span className="text-xs font-bold text-amber-900 bg-amber-50 px-2 py-0.5 rounded border border-amber-200 shrink-0">⭐ {pg.rating}</span>
+                              </div>
+                              <p className="text-xs text-slate-500">📍 {pg.address}, {pg.area}, {pg.city}</p>
+                              
+                              <div className="grid grid-cols-2 gap-2 p-2 bg-slate-50 rounded-xl text-xs">
+                                <div>
+                                  <span className="text-[10px] text-slate-400 font-bold uppercase block">Beds Left</span>
+                                  <span className="font-extrabold text-emerald-700">{pg.availableBeds} / {pg.totalBeds} Beds</span>
+                                </div>
+                                <div>
+                                  <span className="text-[10px] text-slate-400 font-bold uppercase block">Sharing</span>
+                                  <span className="font-bold capitalize text-slate-800">{pg.sharingTypes.join(', ')}</span>
+                                </div>
+                              </div>
+
+                              <div className="p-2.5 bg-sky-50 rounded-xl border border-sky-100 text-xs flex justify-between items-center">
+                                <div>
+                                  <span className="text-[10px] text-slate-400 font-bold block uppercase">Owner Mobile No.</span>
+                                  <span className="font-extrabold text-sky-900">{pg.ownerPhone || '+91 98220 12345'}</span>
+                                </div>
+                                <a href={`tel:${pg.ownerPhone || '+919822012345'}`} className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] rounded-lg shadow-sm">
+                                  📞 Call
+                                </a>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="p-4 pt-0 border-t border-slate-100 flex justify-between items-baseline mt-2">
+                            <div>
+                              <span className="text-lg font-extrabold text-sky-700">₹{pg.rentPerMonth.toLocaleString('en-IN')}</span>
+                              <span className="text-[10px] text-slate-400 block font-semibold">Deposit: ₹{pg.securityDeposit}</span>
+                            </div>
+                            <button onClick={() => setSelectedPGDetails(pg)} className="px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs rounded-xl shadow-sm">View Details</button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* SEARCH PGS TAB VIEW */}
+            {activeTab === 'pgs' && !showAdminPortal && (
+              <div className="max-w-7xl mx-auto px-4 py-8 space-y-6">
+                <div className="p-6 bg-slate-900 text-white rounded-3xl flex justify-between items-center">
+                  <div>
+                    <h1 className="text-2xl font-extrabold">{selectedCollege ? selectedCollege.name : 'All Colleges & Cities'}</h1>
+                    <p className="text-xs text-slate-300">Showing {filteredPGs.length} verified PG accommodations</p>
+                  </div>
+                  <span className="px-3 py-1 bg-white/10 rounded-xl text-xs font-bold">{filteredPGs.length} PGs</span>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                  <div className="lg:col-span-3 bg-white p-5 rounded-2xl border border-slate-200 space-y-4 text-xs">
+                    <h3 className="font-bold text-slate-900 text-sm border-b pb-2">Filter Parameters</h3>
+                    <div>
+                      <label className="font-bold block text-slate-700 mb-1">Max Monthly Rent: ₹{maxRent.toLocaleString('en-IN')}</label>
+                      <input type="range" min="3000" max="30000" step="1000" value={maxRent} onChange={e => setMaxRent(Number(e.target.value))} className="w-full accent-sky-600" />
+                    </div>
+                  </div>
+
+                  <div className="lg:col-span-9 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                    {filteredPGs.map(pg => {
+                      const dist = selectedCollegeId !== 'all' 
+                        ? pg.nearbyColleges.find(c => c.collegeId === selectedCollegeId) 
+                        : (pg.nearbyColleges && pg.nearbyColleges[0] ? pg.nearbyColleges[0] : { distanceKm: 0.6, collegeName: 'PCCOE' });
+                      return (
+                        <div key={pg.id} className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-md flex flex-col justify-between">
+                          <div>
+                            <div className="relative h-44 w-full bg-slate-100">
+                              <img src={pg.photos[0]} className="w-full h-full object-cover" />
+                              <span className="absolute top-3 left-3 text-xs font-bold text-emerald-800 bg-emerald-100/90 backdrop-blur-sm px-2.5 py-0.5 rounded-full border border-emerald-200">
+                                🟢 Verified PG
+                              </span>
+                              {dist && (
+                                <span className="absolute bottom-3 left-3 text-[11px] font-bold text-amber-300 bg-slate-900/90 px-2.5 py-1 rounded-lg border border-slate-700 shadow-md">
+                                  🎓 {dist.distanceKm} km from {dist.collegeName}
+                                </span>
+                              )}
+                            </div>
+
+                            <div className="p-4 space-y-2">
+                              <div className="flex justify-between items-start">
+                                <h3 className="font-extrabold text-slate-900 text-base">{pg.name}</h3>
+                                <span className="text-xs font-bold text-amber-900 bg-amber-50 px-2 py-0.5 rounded border border-amber-200 shrink-0">⭐ {pg.rating}</span>
+                              </div>
+                              <p className="text-xs text-slate-500">📍 {pg.address || pg.area}, {pg.city}</p>
+                              
+                              <div className="grid grid-cols-2 gap-2 p-2 bg-slate-50 rounded-xl text-xs">
+                                <div>
+                                  <span className="text-[10px] text-slate-400 font-bold uppercase block">Beds Left</span>
+                                  <span className="font-extrabold text-emerald-700">{pg.availableBeds} / {pg.totalBeds} Beds</span>
+                                </div>
+                                <div>
+                                  <span className="text-[10px] text-slate-400 font-bold uppercase block">Sharing</span>
+                                  <span className="font-bold capitalize text-slate-800">{pg.sharingTypes.join(', ')}</span>
+                                </div>
+                              </div>
+
+                              <div className="p-2.5 bg-sky-50 rounded-xl border border-sky-100 text-xs flex justify-between items-center">
+                                <div>
+                                  <span className="text-[10px] text-slate-400 font-bold block uppercase">Owner Mobile No.</span>
+                                  <span className="font-extrabold text-sky-900">{pg.ownerPhone || '+91 98220 12345'}</span>
+                                </div>
+                                <a href={`tel:${pg.ownerPhone || '+919822012345'}`} className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] rounded-lg shadow-sm">
+                                  📞 Call
+                                </a>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="p-4 border-t flex justify-between items-center bg-slate-50/50 mt-2">
+                            <div>
+                              <span className="font-extrabold text-sky-700 text-sm">₹{pg.rentPerMonth.toLocaleString('en-IN')}/mo</span>
+                              <span className="text-[10px] text-slate-400 block font-semibold">Deposit: ₹{pg.securityDeposit}</span>
+                            </div>
+                            <button onClick={() => setSelectedPGDetails(pg)} className="px-3.5 py-1.5 bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs rounded-xl shadow-sm">View Details</button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* COLLEGES TAB VIEW */}
+            {activeTab === 'colleges' && !showAdminPortal && (
+              <div className="max-w-7xl mx-auto px-4 py-8 space-y-6">
+                <h1 className="text-3xl font-extrabold text-slate-900">Supported Colleges</h1>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                  {colleges.map(c => (
+                    <div key={c.id} onClick={() => { setSelectedCollegeId(c.id); setActiveTab('pgs'); }} className="bg-white p-4 rounded-2xl border shadow-sm cursor-pointer flex items-center gap-4">
+                      <img src={c.image} className="w-16 h-16 rounded-xl object-cover" />
+                      <div>
+                        <h3 className="font-bold text-slate-900">{c.name}</h3>
+                        <p className="text-xs text-slate-500">{c.city}, {c.state}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+          </main>
+
+          {/* Footer */}
+          <footer className="bg-slate-900 text-slate-400 py-8 px-4 text-center text-xs space-y-2 border-t border-slate-800">
+            <p className="font-extrabold text-white text-sm">StayNest Student PG Accommodation Platform</p>
+            <p>© 2026 Academic Community Project. Logged in as: <strong>{currentUser.username}</strong> ({currentUser.role})</p>
+          </footer>
+
+          {/* COMPLETE PG DETAILS MODAL */}
+          {selectedPGDetails && (
+            <div className="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
+              <div className="bg-white rounded-3xl max-w-4xl w-full p-6 space-y-6 max-h-[92vh] overflow-y-auto border shadow-2xl relative">
+                
+                <div className="flex justify-between items-start border-b pb-4">
+                  <div>
+                    <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">🟢 Verified PG</span>
+                    <h2 className="text-2xl font-extrabold text-slate-900 mt-1">{selectedPGDetails.name}</h2>
+                    <p className="text-xs text-slate-500">📍 {selectedPGDetails.address}, {selectedPGDetails.area}, {selectedPGDetails.city}</p>
+                  </div>
+                  <button onClick={() => setSelectedPGDetails(null)} className="p-2 text-slate-400 hover:text-slate-800 font-bold text-xl">✕</button>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  {selectedPGDetails.photos.map((p, idx) => (
+                    <img key={idx} src={p} className="w-full h-44 object-cover rounded-2xl border" />
+                  ))}
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 p-4 bg-slate-50 rounded-2xl border text-xs">
+                  <div>
+                    <span className="text-[10px] font-bold text-slate-400 uppercase block">Monthly Rent</span>
+                    <span className="text-xl font-extrabold text-sky-700">₹{selectedPGDetails.rentPerMonth.toLocaleString('en-IN')} / mo</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-bold text-slate-400 uppercase block">Security Deposit</span>
+                    <span className="text-base font-bold text-slate-900">₹{selectedPGDetails.securityDeposit.toLocaleString('en-IN')}</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-bold text-slate-400 uppercase block">Beds Available</span>
+                    <span className="text-base font-extrabold text-emerald-700">{selectedPGDetails.availableBeds} / {selectedPGDetails.totalBeds} Beds</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-bold text-slate-400 uppercase block">Room Sharing</span>
+                    <span className="text-base font-bold capitalize text-slate-900">{selectedPGDetails.sharingTypes.join(', ')}</span>
+                  </div>
+                </div>
+
+                <div className="p-4 bg-sky-50 rounded-2xl border border-sky-200 space-y-2 text-xs">
+                  <h4 className="font-bold text-sky-950 text-sm">Owner Contact Details</h4>
+                  <p className="text-slate-800 font-semibold">Owner Name: <span className="font-bold">{selectedPGDetails.ownerName}</span></p>
+                  <p className="text-sky-700 font-extrabold text-sm">Phone: <a href={`tel:${selectedPGDetails.ownerPhone}`} className="hover:underline">{selectedPGDetails.ownerPhone}</a></p>
+                  {selectedPGDetails.googleMapUrl && (
+                    <a href={selectedPGDetails.googleMapUrl} target="_blank" className="text-sky-600 font-bold hover:underline block pt-1">
+                      🗺️ View Location on Google Maps →
+                    </a>
+                  )}
+                </div>
+
+                <div>
+                  <h4 className="font-bold text-slate-900 text-sm mb-2">Map Location:</h4>
+                  <MapViewComponent pg={selectedPGDetails} college={selectedCollege} />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* FULL FEATURED PG OWNER ADD PG MODAL */}
+          {showAddPGModal && (
+            <div className="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
+              <div className="bg-white rounded-3xl max-w-2xl w-full p-6 space-y-4 max-h-[90vh] overflow-y-auto shadow-2xl border">
+                
+                <div className="flex justify-between items-center border-b pb-3">
+                  <h2 className="text-lg font-bold text-slate-900">📷 Add Your PG Property (Owner Submission)</h2>
+                  <button onClick={() => { setShowAddPGModal(false); setFormSubmitted(false); }} className="text-slate-400 font-bold text-xl">✕</button>
+                </div>
+
+                {formSubmitted ? (
+                  <div className="p-6 text-center space-y-3">
+                    <div className="w-12 h-12 bg-amber-100 text-amber-800 rounded-full flex items-center justify-center text-xl font-bold mx-auto">🟡</div>
+                    <h3 className="text-xl font-bold text-slate-900">Submission Sent to Admin for Verification!</h3>
+                    <p className="text-xs text-slate-600 bg-amber-50 p-4 rounded-xl border border-amber-200">
+                      Your PG property <strong>"{pgName}"</strong> with <strong>{uploadedPhotos.length} photo(s)</strong> has been logged with status: <strong>🟡 Pending Admin Verification</strong>.<br/>
+                      The PCCOE Admin (<code>staynest.pccoe</code> / <code>sujal.pccoe</code>) will review your PG photos, address, and rent in the Admin Portal before granting the 🟢 Verified badge for students to view!
+                    </p>
+                    <button onClick={() => { setShowAddPGModal(false); setFormSubmitted(false); }} className="px-6 py-2.5 bg-slate-900 text-white font-bold text-xs rounded-xl">Done</button>
+                  </div>
+                ) : (
+                  <form onSubmit={handleOwnerSubmit} className="space-y-4 text-xs">
+                    
+                    <div className="p-3 bg-slate-50 rounded-xl space-y-2">
+                      <h4 className="font-bold uppercase text-slate-700 text-[11px]">1. PG Basics & Gender</h4>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                        <input required placeholder="PG Name (e.g. Royal Luxury PG) *" value={pgName} onChange={e => setPgName(e.target.value)} className="p-2 border rounded bg-white font-bold sm:col-span-2" />
+                        <select value={pgGender} onChange={e => setPgGender(e.target.value)} className="p-2 border rounded bg-white font-bold">
+                          <option value="boys">Boys PG</option>
+                          <option value="girls">Girls PG</option>
+                          <option value="unisex">Unisex Co-Living</option>
+                        </select>
+                      </div>
+                      <input placeholder="Tagline / Short description" value={pgTagline} onChange={e => setPgTagline(e.target.value)} className="w-full p-2 border rounded bg-white" />
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <div>
+                          <label className="block text-[10px] font-bold text-slate-500 mb-0.5">Owner / Host Display Name (Shown to Students)</label>
+                          <input placeholder="Owner Name or Business Name (e.g. StayNest Host)" value={customOwnerName} onChange={e => setCustomOwnerName(e.target.value)} className="w-full p-2 border rounded bg-white font-bold text-sky-800" />
+                        </div>
+                        <div>
+                          <label className="block text-[10px] font-bold text-slate-500 mb-0.5">Owner Contact Mobile No. / Phone Number *</label>
+                          <input required placeholder="e.g. +91 98220 12345" value={ownerPhoneInput} onChange={e => setOwnerPhoneInput(e.target.value)} className="w-full p-2 border rounded bg-white font-bold text-slate-900" />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="p-3 bg-slate-50 rounded-xl space-y-2">
+                      <h4 className="font-bold uppercase text-slate-700 text-[11px]">📍 Nearest College Campus & Distance</h4>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <div>
+                          <label className="block text-[10px] font-bold text-slate-500 mb-0.5">Nearest College Campus *</label>
+                          <select value={nearestCollegeId} onChange={e => setNearestCollegeId(e.target.value)} className="w-full p-2 border rounded bg-white font-bold text-slate-900">
+                            {colleges.map(c => <option key={c.id} value={c.id}>{c.name} ({c.city})</option>)}
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-[10px] font-bold text-slate-500 mb-0.5">Distance from College (in KM) *</label>
+                          <input type="number" step="0.1" min="0.1" max="50" required placeholder="e.g. 0.6" value={distanceKmInput} onChange={e => setDistanceKmInput(e.target.value)} className="w-full p-2 border rounded bg-white font-bold text-emerald-800" />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="p-3 bg-slate-50 rounded-xl space-y-2">
+                      <h4 className="font-bold uppercase text-slate-700 text-[11px]">2. Full Address & Google Maps Link</h4>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                        <input required placeholder="City *" value={pgCity} onChange={e => setPgCity(e.target.value)} className="p-2 border rounded bg-white" />
+                        <input required placeholder="Area / Locality *" value={pgArea} onChange={e => setPgArea(e.target.value)} className="p-2 border rounded bg-white" />
+                        <input required placeholder="Pincode *" value={pgPincode} onChange={e => setPgPincode(e.target.value)} className="p-2 border rounded bg-white" />
+                      </div>
+                      <input required placeholder="Full Street Address *" value={pgAddress} onChange={e => setPgAddress(e.target.value)} className="w-full p-2 border rounded bg-white" />
+                      <input placeholder="Google Maps Share Link URL" value={googleMapUrl} onChange={e => setGoogleMapUrl(e.target.value)} className="w-full p-2 border rounded bg-white" />
+                    </div>
+
+                    <div className="p-3 bg-slate-50 rounded-xl space-y-2">
+                      <h4 className="font-bold uppercase text-slate-700 text-[11px]">3. Monthly Rent, Deposit & Bed Availability</h4>
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                        <div>
+                          <label className="block text-[10px] font-semibold text-slate-500">Monthly Rent (₹)</label>
+                          <input type="number" required value={rentPerMonth} onChange={e => setRentPerMonth(e.target.value)} className="w-full p-2 border rounded font-bold" />
+                        </div>
+                        <div>
+                          <label className="block text-[10px] font-semibold text-slate-500">Security Deposit (₹)</label>
+                          <input type="number" required value={securityDeposit} onChange={e => setSecurityDeposit(e.target.value)} className="w-full p-2 border rounded font-bold" />
+                        </div>
+                        <div>
+                          <label className="block text-[10px] font-semibold text-slate-500">Total Beds</label>
+                          <input type="number" required value={totalBeds} onChange={e => setTotalBeds(e.target.value)} className="w-full p-2 border rounded" />
+                        </div>
+                        <div>
+                          <label className="block text-[10px] font-semibold text-slate-500">Available Beds</label>
+                          <input type="number" required value={availableBeds} onChange={e => setAvailableBeds(e.target.value)} className="w-full p-2 border rounded font-bold text-emerald-700" />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="p-3 bg-slate-50 rounded-xl space-y-2">
+                      <h4 className="font-bold uppercase text-slate-700 text-[11px]">4. Facilities Provided</h4>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
+                        {ALL_FACILITIES.map(fac => (
+                          <label key={fac} className="flex items-center gap-1.5 p-1.5 bg-white border rounded">
+                            <input
+                              type="checkbox"
+                              checked={pgFacilities.includes(fac)}
+                              onChange={() => {
+                                setPgFacilities(prev => prev.includes(fac) ? prev.filter(f => f !== fac) : [...prev, fac]);
+                              }}
+                              className="w-3.5 h-3.5 text-emerald-600"
+                            />
+                            <span>{fac}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* PHOTO UPLOADER */}
+                    <div className="p-4 bg-sky-50 rounded-2xl border border-sky-200 space-y-3">
+                      <h4 className="font-bold uppercase text-sky-950 text-xs">📷 5. PG Photos Uploader ({uploadedPhotos.length} Added)</h4>
+                      <div className="p-4 bg-white border-2 border-dashed border-sky-300 rounded-xl text-center">
+                        <input type="file" accept="image/*" multiple onChange={handleFileUpload} className="hidden" id="pg-photo-input-modal" />
+                        <label htmlFor="pg-photo-input-modal" className="cursor-pointer flex flex-col items-center gap-1">
+                          <span className="text-2xl">📁</span>
+                          <span className="font-bold text-sky-700 text-xs">Click to Choose Photos from Laptop / Phone</span>
+                          <span className="text-[10px] text-slate-400">Supports JPG, PNG, WEBP files</span>
+                        </label>
+                      </div>
+
+                      {uploadedPhotos.length > 0 && (
+                        <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 pt-2">
+                          {uploadedPhotos.map((photo, index) => (
+                            <div key={index} className="relative rounded-xl overflow-hidden border bg-slate-900 h-20">
+                              <img src={photo} className="w-full h-full object-cover" />
+                              <button type="button" onClick={() => handleRemovePhoto(index)} className="absolute top-1 right-1 bg-rose-600 text-white w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold">✕</button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    <button type="submit" className="w-full py-3.5 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs rounded-xl shadow-md">
+                      Submit PG Property for Admin Verification
+                    </button>
+                  </form>
+                )}
+
+              </div>
+            </div>
+          )}
+
+          {/* PROJECT DOCS MODAL */}
+          {showDocModal && (
+            <div className="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
+              <div className="bg-white rounded-3xl max-w-3xl w-full p-6 space-y-4 max-h-[88vh] overflow-y-auto shadow-2xl border text-xs">
+                <div className="flex justify-between items-center border-b pb-3">
+                  <h2 className="text-base font-bold text-slate-900">Academic Project Documentation (20 Sections)</h2>
+                  <button onClick={() => setShowDocModal(false)} className="text-slate-400 font-bold text-xl">✕</button>
+                </div>
+                <div className="space-y-3 text-slate-800">
+                  <h3 className="font-bold text-sm text-sky-700">StayNest — Student PG Accommodation Finder</h3>
+                  <p><strong>1. Title:</strong> StayNest General-Purpose College PG Accommodation Finder</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<StayNestApp />);
+  </script>
+</body>
+</html>
